@@ -1,0 +1,24 @@
+{
+  "name": "tally-feeder-app",
+  "version": "1.0.0",
+  "description": "HTML Tally Feeder Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.0"
+  },
+  "build": {
+    "appId": "com.tallyfeeder.app",
+    "win": {
+      "target": "portable"
+    },
+    "files": [
+      "index.html",
+      "main.js"
+    ]
+  }
+}
