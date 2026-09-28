@@ -1,4 +1,4 @@
-name: Build Simple Tally Feeder
+name: Build Desktop EXE
 
 on:
   push:
@@ -12,20 +12,19 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        python-version: '3.8'
+        node-version: '20'
 
-    - name: Install PyInstaller
-      run: pip install pyinstaller
+    - name: Install Dependencies
+      run: npm install
 
-    - name: Create EXE file (With Core Windows DLLs)
-      run: |
-        pyinstaller --onefile --noconsole --paths="C:\Windows\System32" app.py
+    - name: Build Portable EXE
+      run: npm run build
 
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: TallyFeeder-Single-EXE
-        path: dist/app.exe
+        name: Tally-HTML-Feeder-EXE
+        path: dist/*.exe
