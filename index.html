@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tally Feeder App</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+    .card { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; margin-top: 15px; cursor: pointer; border-radius: 4px; font-size: 16px; }
+    button:hover { background: #218838; }
+    #status { margin-top: 15px; font-weight: bold; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Tally Entry Feeder</h2>
+  <label>Company Name (Exact Tally Name):</label>
+  <input type="text" id="company" value="Demo Company">
+
+  <label>Date (YYYYMMDD):</label>
+  <input type="text" id="date" value="20260401">
+
+  <label>Party Ledger Name:</label>
+  <input type="text" id="party" placeholder="e.g. Cash / Sundry Debtor">
+
+  <label>Sales Ledger Name:</label>
+  <input type="text" id="salesLedger" value="Sales Account">
+
+  <label>Amount:</label>
+  <input type="number" id="amount" placeholder="1000">
+
+  <button onclick="sendToTally()">Tally Mein Submit Karein</button>
+  <div id="status"></div>
+</div>
+
+<script>
+async function sendToTally() {
+  const company = document.getElementById('company').value.trim();
+  const date = document.getElementById('date').value.trim();
+  const party = document.getElementById('party').value.trim();
+  const salesLedger = document.getElementById('salesLedger').value.trim();
+  const amount = document.getElementById('amount').value.trim();
+  const statusDiv = document.getElementById('status');
+
+  if(!party || !amount) {
+    alert("Kripya saare fields bharein!");
+    return;
+  }
+
+  statusDiv.style.color = "blue";
+  statusDiv.innerText = "Tally se connect ho raha hai...";
+
+  // Tally Sales Voucher XML Payload
+  const xmlPayload = `<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Import Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+        <STATICVARIABLES>
+          <SVCURRENTCOMPANY>${company}</SVCURRENTCOMPANY>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA>
+        <TALLYMESSAGE xmlns:UDF="TallyUDF">
+          <VOUCHER VCHTYPE="Sales" ACTION="Create">
+            <DATE>${date}</DATE>
+            <VOUCHERTYPENAME>Sales</VOUCHERTYPENAME>
+            <PARTYLEDGERNAME>${party}</PARTYLEDGERNAME>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>${party}</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>YES</ISDEEMEDPOSITIVE>
+              <AMOUNT>-${amount}</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>${salesLedger}</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>NO</ISDEEMEDPOSITIVE>
+              <AMOUNT>${amount}</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+          </VOUCHER>
+        </TALLYMESSAGE>
+      </REQUESTDATA>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>`;
+
+  try {
+    const response = await fetch('http://localhost:9000', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/xml' },
+      body: xmlPayload
+    });
+
+    const textResult = await response.text();
+    if(textResult.includes("<CREATED>1</CREATED>")) {
+      statusDiv.style.color = "green";
+      statusDiv.innerText = "Success: Tally mein entry ho gayi!";
+    } else {
+      statusDiv.style.color = "orange";
+      statusDiv.innerText = "Response aaya par entry check karein (Check Company Name/Ledger).";
+    }
+  } catch (error) {
+    statusDiv.style.color = "red";
+    statusDiv.innerText = "Error: Tally open hai kya? Port 9000 check karein.";
+  }
+}
+</script>
+
+</body>
+</html>
