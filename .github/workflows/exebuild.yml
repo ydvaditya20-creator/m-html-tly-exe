@@ -1,4 +1,4 @@
-name: Build Simple Tally Feeder
+name: Build 
 
 on:
   push:
