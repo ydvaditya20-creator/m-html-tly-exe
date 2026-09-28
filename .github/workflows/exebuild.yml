@@ -1,4 +1,4 @@
-name: Build
+name: Build Simple Tally Feeder
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -20,8 +20,9 @@ jobs:
     - name: Install PyInstaller
       run: pip install pyinstaller
 
-    - name: Create EXE file
-      run: pyinstaller --onefile --noconsole app.py
+    - name: Create EXE file (With Core Windows DLLs)
+      run: |
+        pyinstaller --onefile --noconsole --paths="C:\Windows\System32" app.py
 
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
